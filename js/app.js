@@ -34,14 +34,35 @@ function initMap() {
         maxZoom: 19,
     }).addTo(map);
 
-    // India Administrative Boundary (Survey of India / Living Atlas)
-    // Using dynamicMapLayer for complete boundary rendering (server-side)
-    L.esri.dynamicMapLayer({
-        url: 'https://livingatlas.esri.in/server/rest/services/IAB2024/India_Administrative_Boundaries_2024/MapServer',
-        opacity: 0.6,
-        layers: [1],
-        interactive: false,
-    }).addTo(map);
+    // India Administrative Boundary (from Survey of India / Living Atlas 2024)
+    loadIndiaBoundary();
+}
+
+// --- India Boundary ---
+async function loadIndiaBoundary() {
+    try {
+        // Country boundary (thick outline)
+        const countryResp = await fetch('data/india_boundary.geojson');
+        if (countryResp.ok) {
+            const countryData = await countryResp.json();
+            L.geoJSON(countryData, {
+                style: { color: '#1a1a2e', weight: 3, fillOpacity: 0.02, fillColor: '#f0f0f0', opacity: 0.9 },
+                interactive: false,
+            }).addTo(map);
+        }
+
+        // State boundaries (thinner lines)
+        const statesResp = await fetch('data/india_states.geojson');
+        if (statesResp.ok) {
+            const statesData = await statesResp.json();
+            L.geoJSON(statesData, {
+                style: { color: '#555', weight: 1, fillOpacity: 0, opacity: 0.5, dashArray: '4 3' },
+                interactive: false,
+            }).addTo(map);
+        }
+    } catch (err) {
+        console.warn('Failed to load India boundary:', err);
+    }
 }
 
 // --- Load GeoJSON Data ---

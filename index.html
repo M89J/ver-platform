@@ -11,8 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Esri Leaflet for India boundary -->
-    <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+    <!-- Esri Leaflet removed — using local India boundary GeoJSON instead -->
 
     <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -57,11 +56,7 @@
                 <span id="village-count">0 villages</span> |
                 <span id="species-count">0 species recorded</span>
             </div>
-            <!-- Tools Panel -->
-            <div id="tools-panel">
-                <a href="review.html" class="tool-btn">Review Tool</a>
-                <a href="upload.html" class="tool-btn">Upload Data</a>
-            </div>
+            <!-- Admin tools accessible at /review.html and /upload.html -->
         </div>
 
         <!-- Sidebar -->
