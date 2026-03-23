@@ -35,11 +35,11 @@ function initMap() {
     }).addTo(map);
 
     // India Administrative Boundary (Survey of India / Living Atlas)
-    L.esri.featureLayer({
-        url: 'https://livingatlas.esri.in/server/rest/services/IAB2024/India_Administrative_Boundaries_2024/MapServer/1',
-        style: function () {
-            return { color: '#1a1a2e', weight: 2.5, fillOpacity: 0, opacity: 0.8 };
-        },
+    // Using dynamicMapLayer for complete boundary rendering (server-side)
+    L.esri.dynamicMapLayer({
+        url: 'https://livingatlas.esri.in/server/rest/services/IAB2024/India_Administrative_Boundaries_2024/MapServer',
+        opacity: 0.6,
+        layers: [1],
         interactive: false,
     }).addTo(map);
 }
@@ -478,10 +478,14 @@ function initEventListeners() {
         });
     });
 
-    // Search
-    document.getElementById('search-input').addEventListener('input', (e) => {
+    // Search with dropdown suggestions
+    const searchInput = document.getElementById('search-input');
+    const searchDropdown = document.getElementById('search-dropdown');
+
+    searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
         if (!query) {
+            searchDropdown.classList.add('hidden');
             renderMarkers(allVillages);
             updateStats(allVillages);
             return;
@@ -495,24 +499,77 @@ function initEventListeners() {
         });
         renderMarkers(filtered);
         updateStats(filtered);
+        showSearchDropdown(filtered);
     });
 
-    // State filter
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value) {
+            const filtered = allVillages.filter(f => {
+                const p = f.properties;
+                const q = searchInput.value.toLowerCase();
+                return (p.village_name || '').toLowerCase().includes(q) ||
+                       (p.village_name_local || '').includes(q);
+            });
+            showSearchDropdown(filtered);
+        } else {
+            showSearchDropdown(allVillages);
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+            searchDropdown.classList.add('hidden');
+        }
+    });
+
+    // State filter with village list
     document.getElementById('state-filter').addEventListener('change', (e) => {
         const state = e.target.value;
         if (state === 'all') {
             renderMarkers(allVillages);
             updateStats(allVillages);
+            showSearchDropdown(allVillages);
         } else {
             const filtered = allVillages.filter(f =>
-                (f.properties.state || '').toLowerCase().replace(' ', '_') === state
+                (f.properties.state || '').toLowerCase().replace(/\s+/g, '_') === state
             );
             renderMarkers(filtered);
             updateStats(filtered);
+            showSearchDropdown(filtered);
             if (filtered.length > 0) {
                 const coords = filtered[0].geometry.coordinates;
                 map.setView([coords[1], coords[0]], 8);
             }
         }
     });
+}
+
+// --- Search Dropdown ---
+function showSearchDropdown(villages) {
+    const dropdown = document.getElementById('search-dropdown');
+    dropdown.innerHTML = '';
+
+    if (villages.length === 0) {
+        dropdown.innerHTML = '<div class="search-item no-results">No villages found</div>';
+        dropdown.classList.remove('hidden');
+        return;
+    }
+
+    villages.forEach(f => {
+        const p = f.properties;
+        const item = document.createElement('div');
+        item.className = 'search-item';
+        item.innerHTML = `<strong>${p.village_name}</strong>${p.village_name_local ? ' (' + p.village_name_local + ')' : ''}` +
+            `<br/><small>${[p.block, p.district, p.state].filter(Boolean).join(', ')} | ${p.total_species_recorded || 0} species</small>`;
+        item.addEventListener('click', () => {
+            dropdown.classList.add('hidden');
+            document.getElementById('search-input').value = p.village_name;
+            const coords = f.geometry.coordinates;
+            map.setView([coords[1], coords[0]], 12);
+            openSidebar(p);
+        });
+        dropdown.appendChild(item);
+    });
+
+    dropdown.classList.remove('hidden');
 }

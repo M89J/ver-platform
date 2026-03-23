@@ -22,13 +22,12 @@
         <div class="nav-left">
             <h1 id="app-title">Village Ecological Register</h1>
             <span id="app-subtitle" class="subtitle">Citizen Science Data Platform</span>
-            <nav class="nav-links">
-                <a href="review.html">Review Tool</a>
-                <a href="upload.html">Upload Data</a>
-            </nav>
         </div>
         <div class="nav-right">
-            <input type="text" id="search-input" placeholder="Search village..." />
+            <div class="search-wrapper">
+                <input type="text" id="search-input" placeholder="Search village..." />
+                <div id="search-dropdown" class="hidden"></div>
+            </div>
             <select id="state-filter">
                 <option value="all" data-i18n="filter_all">All States</option>
                 <option value="maharashtra">Maharashtra</option>
@@ -57,6 +56,11 @@
             <div id="map-stats">
                 <span id="village-count">0 villages</span> |
                 <span id="species-count">0 species recorded</span>
+            </div>
+            <!-- Tools Panel -->
+            <div id="tools-panel">
+                <a href="review.html" class="tool-btn">Review Tool</a>
+                <a href="upload.html" class="tool-btn">Upload Data</a>
             </div>
         </div>
 
