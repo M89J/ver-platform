@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Esri Leaflet for India boundary -->
+    <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
 
     <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -146,12 +148,12 @@
                     <p id="village-history-text"></p>
                 </div>
                 <div class="info-section">
-                    <h3 data-i18n="ver_photos">Photos</h3>
+                    <h3>Geotagged Photos</h3>
+                    <div id="photo-map" style="height:250px;border-radius:8px;margin-bottom:12px;"></div>
                     <div id="photo-gallery"></div>
                 </div>
                 <div class="info-section">
                     <a id="download-json" href="#" class="btn" data-i18n="download_data">Download Full Data (JSON)</a>
-                    <a id="view-pdf" href="#" target="_blank" class="btn" data-i18n="view_original">View Original PDF</a>
                 </div>
             </div>
         </div>

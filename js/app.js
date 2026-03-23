@@ -33,6 +33,15 @@ function initMap() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> | VER Platform',
         maxZoom: 19,
     }).addTo(map);
+
+    // India Administrative Boundary (Survey of India / Living Atlas)
+    L.esri.featureLayer({
+        url: 'https://livingatlas.esri.in/server/rest/services/IAB2024/India_Administrative_Boundaries_2024/MapServer/1',
+        style: function () {
+            return { color: '#1a1a2e', weight: 2.5, fillOpacity: 0, opacity: 0.8 };
+        },
+        interactive: false,
+    }).addTo(map);
 }
 
 // --- Load GeoJSON Data ---
@@ -358,30 +367,77 @@ function renderDocumentTab(data) {
         histText.textContent = t('no_data');
     }
 
-    // Photos
+    // Photos with geotagging
     const gallery = document.getElementById('photo-gallery');
     gallery.innerHTML = '';
     const photos = data.photos || [];
+
+    // Destroy previous photo map
+    if (charts.photoMap) {
+        charts.photoMap.remove();
+        charts.photoMap = null;
+    }
+
     if (photos.length > 0) {
+        // Build photo mini-map for geotagged photos
+        const geoPhotos = photos.filter(p => p.coordinates?.latitude && p.coordinates?.longitude);
+        if (geoPhotos.length > 0) {
+            const photoMap = L.map('photo-map', { scrollWheelZoom: false, zoomControl: true });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OSM', maxZoom: 19,
+            }).addTo(photoMap);
+
+            const bounds = [];
+            const cameraIcon = L.divIcon({
+                className: 'photo-marker',
+                html: '<div style="background:#e63946;width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.5);cursor:pointer;"></div>',
+                iconSize: [18, 18], iconAnchor: [9, 9],
+            });
+
+            geoPhotos.forEach(p => {
+                const ll = [p.coordinates.latitude, p.coordinates.longitude];
+                bounds.push(ll);
+                L.marker(ll, { icon: cameraIcon })
+                    .addTo(photoMap)
+                    .bindPopup(
+                        `<div style="max-width:200px;"><img src="${p.image_path}" style="width:100%;border-radius:4px;"/><br/>` +
+                        `<small><strong>${p.caption || ''}</strong></small>` +
+                        (p.elevation_m ? `<br/><small>Elev: ${p.elevation_m}m</small>` : '') +
+                        (p.timestamp ? `<br/><small>${p.timestamp}</small>` : '') +
+                        `</div>`, { maxWidth: 220 }
+                    );
+            });
+
+            photoMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+            charts.photoMap = photoMap;
+        } else {
+            document.getElementById('photo-map').style.display = 'none';
+        }
+
+        // Photo gallery cards
         photos.forEach(p => {
-            if (p.image_path) {
-                const img = document.createElement('img');
-                img.src = p.image_path;
-                img.alt = p.caption || '';
-                img.title = p.caption_local || p.caption || '';
-                gallery.appendChild(img);
-            }
+            if (!p.image_path) return;
+            const card = document.createElement('div');
+            card.className = 'photo-card';
+            const hasGeo = p.coordinates?.latitude && p.coordinates?.longitude;
+            card.innerHTML =
+                `<img src="${p.image_path}" alt="${p.caption || ''}" loading="lazy"/>` +
+                `<div class="photo-info">` +
+                `<p class="photo-caption">${p.caption_local || p.caption || ''}</p>` +
+                (hasGeo ? `<p class="photo-coords"><small>${p.coordinates.latitude.toFixed(4)}°N, ${p.coordinates.longitude.toFixed(4)}°E` +
+                    (p.elevation_m ? ` | ${p.elevation_m}m` : '') + `</small></p>` : '') +
+                (p.category ? `<span class="photo-category">${p.category.replace(/_/g, ' ')}</span>` : '') +
+                `</div>`;
+            gallery.appendChild(card);
         });
     } else {
+        document.getElementById('photo-map').style.display = 'none';
         gallery.innerHTML = `<p>${t('no_data')}</p>`;
     }
 
-    // Download links
+    // Download link
     const vid = data.metadata?.village_id || 'village';
-    document.getElementById('download-json').href =
-        `data/structured/${vid}.json`;
-    document.getElementById('view-pdf').href =
-        `data/raw/${vid.split('_')[0]}/`;
+    document.getElementById('download-json').href = `data/structured/${vid}.json`;
 }
 
 // --- Helpers ---

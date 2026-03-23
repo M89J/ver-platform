@@ -327,5 +327,78 @@
       {"local_name": "गांडूळ", "guide_name": "Earthworm", "significance": "Soil nutrient cycling (माती पोषक)", "trend_25yr": "decreasing", "reason": "Excess chemical fertilizer use (खतांचा अतिवापर)"}
     ]
   },
-  "photos": []
+  "photos": [
+    {
+      "image_path": "data/photos/manjari/hanuman_temple.jpeg",
+      "caption": "Hanuman Temple - Village shrine where community gathers for worship and festivals",
+      "caption_local": "हनुमान मंदिर - गावातील मंदिर जेथे पूजा आणि सण साजरे होतात",
+      "coordinates": {"latitude": 20.000014, "longitude": 78.197967},
+      "elevation_m": 231.16,
+      "timestamp": "2025-01-17",
+      "category": "cultural_site"
+    },
+    {
+      "image_path": "data/photos/manjari/old_chinch_tree.jpeg",
+      "caption": "Old Chinch (Tamarind) tree - approximately 60 years old, important bird habitat",
+      "caption_local": "जुने चिंचेचे झाड - अंदाजे ६० वर्षे जुने, पक्ष्यांचे निवासस्थान",
+      "coordinates": {"latitude": 19.998537, "longitude": 78.198204},
+      "elevation_m": 332.97,
+      "timestamp": "2023-11-01T14:48:00",
+      "category": "old_tree"
+    },
+    {
+      "image_path": "data/photos/manjari/stone_well.jpeg",
+      "caption": "Traditional stone well (Vihir) - historic water source used for drinking and livestock",
+      "caption_local": "मांजरी गावातील मोठी विहीर - गावातील पाण्याचा ऐतिहासिक स्रोत",
+      "coordinates": {"latitude": 20.001171, "longitude": 78.198126},
+      "elevation_m": 322.46,
+      "timestamp": "2025-01-17T15:10:00",
+      "category": "water_source"
+    },
+    {
+      "image_path": "data/photos/manjari/dagachi_vihir.jpeg",
+      "caption": "Dagachi Vihir - Old well, historically supplied water year-round, now water level declining",
+      "caption_local": "दगाची विहीर - बारा महिने पाणी पुरवणारी जुनी प्रसिद्ध विहीर, आता पाण्याची पातळी कमी",
+      "coordinates": {"latitude": 19.999522, "longitude": 78.199738},
+      "elevation_m": 337.17,
+      "timestamp": "2025-01-18T16:24:00",
+      "category": "water_source"
+    },
+    {
+      "image_path": "data/photos/manjari/old_well.jpeg",
+      "caption": "Ancient well (Juni Vihir) - Traditional water source near the village",
+      "caption_local": "जुनी विहीर - गावाजवळील पारंपारिक पाण्याचा स्रोत",
+      "coordinates": {"latitude": 19.998509, "longitude": 78.198200},
+      "elevation_m": 334.37,
+      "timestamp": "2025-01-17T14:40:00",
+      "category": "water_source"
+    },
+    {
+      "image_path": "data/photos/manjari/kouke_vine.jpeg",
+      "caption": "Kouke (Bottle gourd) vine - traditional vegetable used for cooking",
+      "caption_local": "कोउके वेल - भाजी बनवण्यासाठी वापर, औषधी गुणधर्म",
+      "coordinates": {"latitude": 20.000238, "longitude": 78.199798},
+      "elevation_m": 353.86,
+      "timestamp": "2025-01-19T10:25:00",
+      "category": "traditional_crop"
+    },
+    {
+      "image_path": "data/photos/manjari/pola_festival.jpeg",
+      "caption": "Pola Festival - Traditional bull worship procession celebrating agricultural heritage",
+      "caption_local": "पोळा सण - बैलांना सजवून मिरवणूक, कृषी परंपरा",
+      "category": "cultural_event"
+    },
+    {
+      "image_path": "data/photos/manjari/snake_in_well.jpeg",
+      "caption": "Water snake (Checkered Keelback) found in village well - indicator of aquatic biodiversity",
+      "caption_local": "विहीरीमध्ये साप - जलचर प्राणी, पाण्यातील जैवविविधतेचे सूचक",
+      "category": "biodiversity"
+    },
+    {
+      "image_path": "data/photos/manjari/herb_plant.jpeg",
+      "caption": "Local herb/medicinal plant species found in village grasslands",
+      "caption_local": "गावातील गवताळ जमिनीवरील औषधी वनस्पती",
+      "category": "flora"
+    }
+  ]
 }
