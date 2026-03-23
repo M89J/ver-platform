@@ -28,11 +28,19 @@
         "total_households": 254,
         "livestock_total": 717,
         "biodiversity_counts": {
-          "shrubs": 2,
-          "herbs_and_grasses": 9
+          "trees": 7,
+          "shrubs": 3,
+          "herbs_and_grasses": 9,
+          "mammals": 5,
+          "birds": 8,
+          "reptiles_amphibians": 4,
+          "butterflies": 3,
+          "dragonflies": 2,
+          "fish_insects_others": 4,
+          "soil_macrofauna": 1
         },
-        "total_species_recorded": 11,
-        "water_sources_count": 3,
+        "total_species_recorded": 46,
+        "water_sources_count": 12,
         "livelihoods": ["Farming", "Livestock rearing", "Daily wage labor", "Poultry keeping", "Dairy"],
         "data_status": "ocr_extracted",
         "ver_year": "2023-24",
