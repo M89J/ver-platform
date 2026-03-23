@@ -1,0 +1,28 @@
+# === VER Platform .gitignore ===
+
+# Heavy data files (not needed for web deployment)
+data/extracted/
+data/raw/
+data/review/
+manjari_pages/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Symlinks (created for local dev)
+web/data
+
+# Duplicate web dir (root-level copies are used for GitHub Pages)
+web/

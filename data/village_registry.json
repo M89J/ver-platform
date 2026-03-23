@@ -1,0 +1,13 @@
+{
+  "_description": "Registry mapping village folder names to their state and metadata. Used by run_pipeline.py --all for automatic language detection.",
+  "_supported_states": ["gujarat", "maharashtra", "chhattisgarh", "odisha", "rajasthan", "northeast", "andhra_pradesh", "telangana", "karnataka"],
+
+  "manjari": {
+    "state": "maharashtra",
+    "district": "",
+    "block": "Khatav",
+    "gram_panchayat": "Manjari",
+    "ver_year": "2023-24",
+    "notes": "Reference village — first VER processed"
+  }
+}

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VER - Data Review Tool</title>
+    <style>
+        :root { --primary: #2d6a4f; --bg: #f8f9fa; --border: #dee2e6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); }
+
+        header {
+            background: var(--primary); color: white; padding: 12px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        header h1 { font-size: 18px; }
+        .controls { display: flex; gap: 10px; align-items: center; }
+        .controls select, .controls button {
+            padding: 6px 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.15); color: white; font-size: 13px; cursor: pointer;
+        }
+        .controls button:hover { background: rgba(255,255,255,0.3); }
+
+        .main { display: flex; height: calc(100vh - 48px); }
+
+        /* Left: Scanned Page Image */
+        .panel-image {
+            flex: 1; overflow: auto; background: #333; padding: 10px;
+            display: flex; justify-content: center;
+        }
+        .panel-image img { max-width: 100%; height: auto; border: 2px solid #555; }
+
+        /* Right: OCR Text + Editor */
+        .panel-editor { width: 480px; display: flex; flex-direction: column; border-left: 1px solid var(--border); }
+
+        .section-nav {
+            display: flex; flex-wrap: wrap; gap: 4px; padding: 8px;
+            background: #e9ecef; border-bottom: 1px solid var(--border);
+        }
+        .section-btn {
+            padding: 4px 8px; font-size: 11px; border: 1px solid var(--border);
+            border-radius: 3px; cursor: pointer; background: white;
+        }
+        .section-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .section-btn.has-data { border-color: var(--primary); }
+
+        .editor-area { flex: 1; overflow: auto; padding: 12px; }
+
+        .field-group { margin-bottom: 14px; }
+        .field-group label {
+            display: block; font-size: 12px; font-weight: 600;
+            color: #495057; margin-bottom: 4px;
+        }
+        .field-group input, .field-group textarea, .field-group select {
+            width: 100%; padding: 6px 10px; border: 1px solid var(--border);
+            border-radius: 4px; font-size: 13px;
+        }
+        .field-group textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+        .confidence-low { border-color: #dc3545; background: #fff5f5; }
+        .confidence-med { border-color: #ffc107; background: #fffbeb; }
+        .confidence-high { border-color: #28a745; }
+
+        .ocr-raw {
+            background: #f1f3f5; border: 1px solid var(--border);
+            border-radius: 4px; padding: 10px; font-size: 12px;
+            max-height: 200px; overflow-y: auto; margin-bottom: 12px;
+            white-space: pre-wrap; font-family: monospace;
+        }
+        .ocr-raw-header {
+            font-size: 12px; font-weight: 600; color: #6c757d;
+            margin-bottom: 4px; cursor: pointer;
+        }
+
+        .action-bar {
+            padding: 10px; background: #e9ecef; border-top: 1px solid var(--border);
+            display: flex; gap: 8px; justify-content: space-between;
+        }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 4px;
+            cursor: pointer; font-size: 13px; font-weight: 500;
+        }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-save:hover { background: #40916c; }
+        .btn-skip { background: #6c757d; color: white; }
+        .btn-export { background: #0077b6; color: white; }
+
+        .page-nav { display: flex; align-items: center; gap: 8px; padding: 8px; background: #e9ecef; }
+        .page-nav button { padding: 4px 10px; cursor: pointer; border: 1px solid var(--border); border-radius: 3px; background: white; }
+        .page-nav span { font-size: 13px; }
+
+        .progress-bar { height: 4px; background: #e9ecef; }
+        .progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+
+        .status-msg { font-size: 12px; color: #28a745; padding: 4px 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>VER Data Review Tool</h1>
+        <div class="controls">
+            <select id="village-select">
+                <option value="">Select Village...</option>
+            </select>
+            <span id="review-status" style="font-size:12px;opacity:0.8;"></span>
+            <button id="btn-export-all" onclick="exportCorrected()">Export Corrected JSON</button>
+        </div>
+    </header>
+
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+    <div class="main">
+        <!-- Left: Page Image -->
+        <div class="panel-image">
+            <img id="page-image" src="" alt="Scanned page" />
+        </div>
+
+        <!-- Right: Editor -->
+        <div class="panel-editor">
+            <!-- Page Navigation -->
+            <div class="page-nav">
+                <button onclick="changePage(-1)">&laquo; Prev</button>
+                <span id="page-indicator">Page 1 / 1</span>
+                <button onclick="changePage(1)">Next &raquo;</button>
+                <select id="page-select" onchange="goToPage(this.value)" style="margin-left:auto;"></select>
+            </div>
+
+            <!-- Section Navigation -->
+            <div class="section-nav" id="section-nav"></div>
+
+            <!-- Editor -->
+            <div class="editor-area" id="editor-area">
+                <p style="color:#6c757d;text-align:center;margin-top:40px;">Select a village to begin review</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-save" onclick="saveCurrentSection()">Save Section</button>
+                    <button class="btn btn-skip" onclick="nextSection()">Skip</button>
+                </div>
+                <span class="status-msg" id="save-status"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // --- State ---
+    let villageData = null;
+    let ocrPages = {};
+    let currentPage = 1;
+    let totalPages = 0;
+    let currentSection = null;
+    let sectionMap = {};
+    let correctedData = {};
+    let villageName = '';
+
+    // --- Init ---
+    document.addEventListener('DOMContentLoaded', loadVillageList);
+
+    async function loadVillageList() {
+        try {
+            const resp = await fetch('data/village_registry.json');
+            const registry = await resp.json();
+            const select = document.getElementById('village-select');
+            Object.keys(registry).forEach(key => {
+                if (key.startsWith('_')) return;
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = `${key} (${registry[key].state || ''})`;
+                select.appendChild(opt);
+            });
+        } catch(e) {
+            // Fallback: list structured JSON files
+            const opt = document.createElement('option');
+            opt.value = 'manjari';
+            opt.textContent = 'manjari (maharashtra)';
+            document.getElementById('village-select').appendChild(opt);
+        }
+
+        document.getElementById('village-select').addEventListener('change', (e) => {
+            if (e.target.value) loadVillage(e.target.value);
+        });
+    }
+
+    async function loadVillage(village) {
+        villageName = village;
+
+        // Load structured JSON
+        try {
+            const resp = await fetch(`data/structured/${village}.json`);
+            villageData = await resp.json();
+            correctedData = JSON.parse(JSON.stringify(villageData)); // deep copy
+        } catch(e) {
+            alert('Could not load village data: ' + e.message);
+            return;
+        }
+
+        // Load section map
+        try {
+            const resp = await fetch(`data/extracted/${village}/section_map.json`);
+            sectionMap = await resp.json();
+        } catch(e) { sectionMap = {}; }
+
+        // Detect total pages
+        totalPages = villageData.metadata?.total_pages || 134;
+
+        // Populate page selector
+        const pageSelect = document.getElementById('page-select');
+        pageSelect.innerHTML = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `Page ${i}`;
+            pageSelect.appendChild(opt);
+        }
+
+        // Build section nav
+        buildSectionNav();
+        goToPage(1);
+
+        document.getElementById('review-status').textContent =
+            `${totalPages} pages | Status: ${villageData.metadata?.data_status || 'unknown'}`;
+    }
+
+    function buildSectionNav() {
+        const nav = document.getElementById('section-nav');
+        nav.innerHTML = '';
+        const sections = [
+            ['section_2_general_info', 'S2: General'],
+            ['section_3_village_history', 'S3: History'],
+            ['section_4_agroecological', 'S4: Agro'],
+            ['section_5_livestock', 'S5: Livestock'],
+            ['section_6_waterscape', 'S6: Water'],
+            ['section_7_forest_lands', 'S7: Forest'],
+            ['section_8_grassland', 'S8: Grass'],
+            ['section_10_sacred_groves', 'S10: Sacred'],
+            ['section_12_old_giant_trees', 'S12: Trees'],
+            ['section_16_medicinal_plants', 'S16: Med.Plants'],
+            ['section_17_invasive_plants', 'S17: Invasive'],
+            ['section_20_flora_fauna', 'S20: Flora/Fauna'],
+        ];
+
+        sections.forEach(([key, label]) => {
+            const btn = document.createElement('button');
+            btn.className = 'section-btn';
+            btn.textContent = label;
+            btn.dataset.section = key;
+
+            // Check if section has data
+            const secData = correctedData[key];
+            if (secData && secData._raw_ocr) btn.classList.add('has-data');
+
+            btn.onclick = () => loadSectionEditor(key);
+            nav.appendChild(btn);
+        });
+    }
+
+    function goToPage(pageNum) {
+        currentPage = parseInt(pageNum);
+        document.getElementById('page-image').src =
+            `data/extracted/${villageName}/pages/page_${String(currentPage).padStart(3, '0')}.png`;
+        document.getElementById('page-indicator').textContent = `Page ${currentPage} / ${totalPages}`;
+        document.getElementById('page-select').value = currentPage;
+    }
+
+    function changePage(delta) {
+        const newPage = currentPage + delta;
+        if (newPage >= 1 && newPage <= totalPages) goToPage(newPage);
+    }
+
+    function loadSectionEditor(sectionKey) {
+        currentSection = sectionKey;
+
+        // Highlight active section button
+        document.querySelectorAll('.section-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.section === sectionKey);
+        });
+
+        const sectionData = correctedData[sectionKey] || {};
+        const editor = document.getElementById('editor-area');
+
+        let html = '';
+
+        // Show raw OCR text (collapsible)
+        if (sectionData._raw_ocr) {
+            html += `<div class="ocr-raw-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                ▶ Raw OCR Text (click to expand)</div>`;
+            html += `<div class="ocr-raw" style="display:none">${escapeHtml(sectionData._raw_ocr)}</div>`;
+        }
+
+        // Generate form fields based on section
+        html += generateSectionForm(sectionKey, sectionData);
+        editor.innerHTML = html;
+
+        // Navigate to relevant page if section map available
+        const secId = sectionKey.replace('section_', 'section_').replace('_general_info', '').replace('_village_history', '').replace('_agroecological', '').replace('_livestock', '').replace('_waterscape', '');
+        const shortId = Object.keys(sectionMap).find(k => sectionKey.includes(k.replace('section_', '')));
+        if (shortId && sectionMap[shortId]) {
+            goToPage(sectionMap[shortId].start_page);
+        }
+    }
+
+    function generateSectionForm(sectionKey, data) {
+        let html = '<div style="margin-top:10px;">';
+
+        if (sectionKey === 'section_2_general_info') {
+            html += field('village_name', 'Village Name', data.village_name);
+            html += field('village_name_local', 'Village Name (Local)', data.village_name_local);
+            html += field('gram_panchayat', 'Gram Panchayat', data.gram_panchayat);
+            html += field('block', 'Block/Taluka', data.block);
+            html += field('district', 'District', data.district);
+            html += field('state', 'State', data.state);
+            html += field('lat', 'Latitude', data.coordinates?.latitude);
+            html += field('lon', 'Longitude', data.coordinates?.longitude);
+            html += '<hr style="margin:10px 0;">';
+            html += field('total_area', 'Total Area (ha)', data.land_details?.total_village_area_ha);
+            html += field('forest_ha', 'Forest (ha)', data.land_details?.forest_land_ha);
+            html += field('grazing_ha', 'Grazing (ha)', data.land_details?.grazing_land_ha);
+            html += field('agri_ha', 'Agriculture (ha)', data.land_details?.agricultural_land_ha);
+            html += '<hr style="margin:10px 0;">';
+            html += field('total_pop', 'Total Population', data.caste_composition?.total_population);
+            html += field('gen', 'General HH', data.caste_composition?.general);
+            html += field('sc', 'SC HH', data.caste_composition?.scheduled_caste);
+            html += field('st', 'ST HH', data.caste_composition?.scheduled_tribe);
+            html += field('obc', 'OBC HH', data.caste_composition?.other_backward_classes);
+        }
+        else if (sectionKey === 'section_3_village_history') {
+            html += textArea('history_narrative', 'Village History (English)', data.village_history?.narrative);
+            html += textArea('history_local', 'Village History (Local Language)', data.village_history?.narrative_local);
+        }
+        else if (sectionKey === 'section_5_livestock') {
+            html += '<h4 style="margin-bottom:8px;">Livestock Numbers</h4>';
+            const types = ['Indigenous Cows', 'Hybrid Cows', 'Oxen', 'Buffaloes', 'Goats', 'Sheep', 'Camel'];
+            types.forEach((type, i) => {
+                const existing = (data.livestock_numbers || []).find(l => l.type === type) || {};
+                html += `<div style="background:#f8f9fa;padding:8px;margin-bottom:6px;border-radius:4px;">
+                    <strong style="font-size:12px;">${type}</strong>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-top:4px;">
+                        <input data-livestock="${i}" data-field="current" type="number" placeholder="Current" value="${existing.current_count || ''}" style="padding:4px;font-size:12px;">
+                        <input data-livestock="${i}" data-field="t10" type="number" placeholder="10yr ago" value="${typeof existing.trend_10yr === 'number' ? existing.trend_10yr : ''}" style="padding:4px;font-size:12px;">
+                        <input data-livestock="${i}" data-field="t25" type="number" placeholder="25yr ago" value="${typeof existing.trend_25yr === 'number' ? existing.trend_25yr : ''}" style="padding:4px;font-size:12px;">
+                        <input data-livestock="${i}" data-field="t50" type="number" placeholder="50yr ago" value="${typeof existing.trend_50yr === 'number' ? existing.trend_50yr : ''}" style="padding:4px;font-size:12px;">
+                    </div></div>`;
+            });
+        }
+        else {
+            // Generic: show all string/number fields as editable
+            html += '<p style="font-size:12px;color:#6c757d;">Edit fields below. Refer to scanned page on the left.</p>';
+            html += textArea(`generic_${sectionKey}`, 'Section Data (JSON)', JSON.stringify(data, null, 2));
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function field(id, label, value) {
+        return `<div class="field-group">
+            <label for="f_${id}">${label}</label>
+            <input id="f_${id}" type="text" value="${value ?? ''}" data-field="${id}">
+        </div>`;
+    }
+
+    function textArea(id, label, value) {
+        return `<div class="field-group">
+            <label for="f_${id}">${label}</label>
+            <textarea id="f_${id}" data-field="${id}">${value ?? ''}</textarea>
+        </div>`;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function saveCurrentSection() {
+        if (!currentSection || !correctedData) return;
+
+        if (currentSection === 'section_2_general_info') {
+            const g = (id) => document.getElementById(`f_${id}`)?.value || '';
+            correctedData.section_2_general_info.village_name = g('village_name');
+            correctedData.section_2_general_info.village_name_local = g('village_name_local');
+            correctedData.section_2_general_info.gram_panchayat = g('gram_panchayat');
+            correctedData.section_2_general_info.block = g('block');
+            correctedData.section_2_general_info.district = g('district');
+            correctedData.section_2_general_info.state = g('state');
+            correctedData.section_2_general_info.coordinates = {
+                latitude: parseFloat(g('lat')) || null,
+                longitude: parseFloat(g('lon')) || null,
+            };
+            correctedData.section_2_general_info.land_details = {
+                total_village_area_ha: parseFloat(g('total_area')) || null,
+                forest_land_ha: parseFloat(g('forest_ha')) || null,
+                grazing_land_ha: parseFloat(g('grazing_ha')) || null,
+                agricultural_land_ha: parseFloat(g('agri_ha')) || null,
+            };
+            correctedData.section_2_general_info.caste_composition = {
+                total_population: parseInt(g('total_pop')) || null,
+                general: parseInt(g('gen')) || null,
+                scheduled_caste: parseInt(g('sc')) || null,
+                scheduled_tribe: parseInt(g('st')) || null,
+                other_backward_classes: parseInt(g('obc')) || null,
+            };
+        }
+        else if (currentSection === 'section_3_village_history') {
+            const g = (id) => document.getElementById(`f_${id}`)?.value || '';
+            if (!correctedData.section_3_village_history.village_history)
+                correctedData.section_3_village_history.village_history = {};
+            correctedData.section_3_village_history.village_history.narrative = g('history_narrative');
+            correctedData.section_3_village_history.village_history.narrative_local = g('history_local');
+        }
+        else if (currentSection === 'section_5_livestock') {
+            const types = ['Indigenous Cows', 'Hybrid Cows', 'Oxen', 'Buffaloes', 'Goats', 'Sheep', 'Camel'];
+            correctedData.section_5_livestock.livestock_numbers = types.map((type, i) => {
+                const val = (field) => {
+                    const el = document.querySelector(`input[data-livestock="${i}"][data-field="${field}"]`);
+                    return el && el.value ? parseInt(el.value) : 0;
+                };
+                return {
+                    type: type,
+                    current_count: val('current'),
+                    trend_10yr: val('t10'),
+                    trend_25yr: val('t25'),
+                    trend_50yr: val('t50'),
+                    reason_for_change: '',
+                };
+            }).filter(l => l.current_count > 0 || l.trend_10yr > 0);
+        }
+
+        // Update data status
+        correctedData.metadata.data_status = 'human_reviewed';
+
+        document.getElementById('save-status').textContent = `Saved: ${currentSection}`;
+        setTimeout(() => document.getElementById('save-status').textContent = '', 2000);
+
+        // Update progress
+        updateProgress();
+    }
+
+    function nextSection() {
+        const btns = document.querySelectorAll('.section-btn');
+        let foundCurrent = false;
+        for (const btn of btns) {
+            if (foundCurrent) {
+                btn.click();
+                return;
+            }
+            if (btn.dataset.section === currentSection) foundCurrent = true;
+        }
+    }
+
+    function updateProgress() {
+        // Count sections with non-empty data
+        const allSections = Object.keys(correctedData).filter(k => k.startsWith('section_'));
+        const reviewed = allSections.filter(k => {
+            const d = correctedData[k];
+            if (!d) return false;
+            if (typeof d === 'object' && !Array.isArray(d)) {
+                return Object.keys(d).some(key => key !== '_raw_ocr' && d[key]);
+            }
+            return Array.isArray(d) && d.length > 0;
+        }).length;
+        const pct = Math.round((reviewed / allSections.length) * 100);
+        document.getElementById('progress-fill').style.width = pct + '%';
+    }
+
+    function exportCorrected() {
+        if (!correctedData) { alert('No data loaded'); return; }
+
+        // Remove _raw_ocr fields for clean export
+        const exportData = JSON.parse(JSON.stringify(correctedData));
+        function removeRawOcr(obj) {
+            if (typeof obj !== 'object' || obj === null) return;
+            delete obj._raw_ocr;
+            Object.values(obj).forEach(removeRawOcr);
+        }
+        removeRawOcr(exportData);
+        exportData.metadata.data_status = 'human_reviewed';
+        exportData.metadata.reviewer = 'web_review_tool';
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${villageName}_reviewed.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    </script>
+</body>
+</html>

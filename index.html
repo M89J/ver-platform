@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Village Ecological Register - India</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header id="navbar">
+        <div class="nav-left">
+            <h1 id="app-title">Village Ecological Register</h1>
+            <span id="app-subtitle" class="subtitle">Citizen Science Data Platform</span>
+            <nav class="nav-links">
+                <a href="review.html">Review Tool</a>
+                <a href="upload.html">Upload Data</a>
+            </nav>
+        </div>
+        <div class="nav-right">
+            <input type="text" id="search-input" placeholder="Search village..." />
+            <select id="state-filter">
+                <option value="all" data-i18n="filter_all">All States</option>
+                <option value="maharashtra">Maharashtra</option>
+                <option value="gujarat">Gujarat</option>
+                <option value="chhattisgarh">Chhattisgarh</option>
+                <option value="odisha">Odisha</option>
+                <option value="rajasthan">Rajasthan</option>
+                <option value="northeast">North-East</option>
+                <option value="andhra_pradesh">Andhra Pradesh</option>
+                <option value="telangana">Telangana</option>
+                <option value="karnataka">Karnataka</option>
+            </select>
+            <div class="lang-toggle">
+                <button class="lang-btn active" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="hi">हिं</button>
+                <button class="lang-btn" data-lang="mr">मरा</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div id="main-container">
+        <!-- Map -->
+        <div id="map-container">
+            <div id="map"></div>
+            <div id="map-stats">
+                <span id="village-count">0 villages</span> |
+                <span id="species-count">0 species recorded</span>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div id="sidebar" class="hidden">
+            <button id="sidebar-close">&times;</button>
+
+            <!-- Village Header -->
+            <div id="village-header">
+                <h2 id="village-name"></h2>
+                <p id="village-location"></p>
+                <span id="data-status" class="badge"></span>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div id="tab-nav">
+                <button class="tab-btn active" data-tab="overview" data-i18n="tab_overview">Overview</button>
+                <button class="tab-btn" data-tab="biodiversity" data-i18n="tab_biodiversity">Biodiversity</button>
+                <button class="tab-btn" data-tab="livestock" data-i18n="tab_livestock">Livestock</button>
+                <button class="tab-btn" data-tab="water" data-i18n="tab_water">Water</button>
+                <button class="tab-btn" data-tab="document" data-i18n="tab_document">Document</button>
+            </div>
+
+            <!-- Tab: Overview -->
+            <div id="tab-overview" class="tab-content active">
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-population">-</div>
+                        <div class="stat-label" data-i18n="population">Population</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-area">-</div>
+                        <div class="stat-label" data-i18n="total_area">Total Area (ha)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-households">-</div>
+                        <div class="stat-label" data-i18n="households">Households</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-species">-</div>
+                        <div class="stat-label" data-i18n="species_recorded">Species Recorded</div>
+                    </div>
+                </div>
+
+                <!-- Land Use Chart -->
+                <div class="chart-container">
+                    <h3 data-i18n="land_use">Land Use</h3>
+                    <canvas id="chart-landuse"></canvas>
+                </div>
+
+                <!-- Livelihoods -->
+                <div class="info-section">
+                    <h3 data-i18n="livelihoods">Major Livelihoods</h3>
+                    <ul id="livelihoods-list"></ul>
+                </div>
+            </div>
+
+            <!-- Tab: Biodiversity -->
+            <div id="tab-biodiversity" class="tab-content">
+                <div class="chart-container">
+                    <h3 data-i18n="biodiversity_summary">Biodiversity Summary</h3>
+                    <canvas id="chart-biodiversity"></canvas>
+                </div>
+                <div id="species-lists"></div>
+            </div>
+
+            <!-- Tab: Livestock -->
+            <div id="tab-livestock" class="tab-content">
+                <div class="chart-container">
+                    <h3 data-i18n="livestock_trends">Livestock Trends</h3>
+                    <canvas id="chart-livestock"></canvas>
+                </div>
+                <div id="livestock-table-container"></div>
+            </div>
+
+            <!-- Tab: Water -->
+            <div id="tab-water" class="tab-content">
+                <div class="chart-container">
+                    <h3 data-i18n="water_sources">Water Sources</h3>
+                    <canvas id="chart-water"></canvas>
+                </div>
+                <div id="water-details"></div>
+            </div>
+
+            <!-- Tab: Document -->
+            <div id="tab-document" class="tab-content">
+                <div class="info-section">
+                    <h3 data-i18n="village_history">Village History</h3>
+                    <p id="village-history-text"></p>
+                </div>
+                <div class="info-section">
+                    <h3 data-i18n="ver_photos">Photos</h3>
+                    <div id="photo-gallery"></div>
+                </div>
+                <div class="info-section">
+                    <a id="download-json" href="#" class="btn" data-i18n="download_data">Download Full Data (JSON)</a>
+                    <a id="view-pdf" href="#" target="_blank" class="btn" data-i18n="view_original">View Original PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

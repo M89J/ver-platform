@@ -1,0 +1,43 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "title": "Village Ecological Register - Village Locations",
+    "description": "GeoJSON layer of all VER villages with summary data for map display",
+    "total_villages": 1,
+    "skipped_no_coords": 0
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [74.260039, 20.601253]
+      },
+      "properties": {
+        "village_id": "manjari_khatav_maharashtra",
+        "village_name": "Manjari",
+        "village_name_local": "मांजरी",
+        "state": "Maharashtra",
+        "district": "",
+        "block": "Khatav",
+        "gram_panchayat": "Manjari",
+        "population": 1251,
+        "total_area_ha": 366.97,
+        "forest_area_ha": 17.63,
+        "agricultural_area_ha": 333.0,
+        "total_households": 254,
+        "livestock_total": 717,
+        "biodiversity_counts": {
+          "shrubs": 2,
+          "herbs_and_grasses": 9
+        },
+        "total_species_recorded": 11,
+        "water_sources_count": 3,
+        "livelihoods": ["Farming", "Livestock rearing", "Daily wage labor", "Poultry keeping", "Dairy"],
+        "data_status": "ocr_extracted",
+        "ver_year": "2023-24",
+        "data_file": "data/structured/manjari.json"
+      }
+    }
+  ]
+}

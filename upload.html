@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VER - Upload New Village Data</title>
+    <style>
+        :root { --primary: #2d6a4f; --bg: #f8f9fa; --border: #dee2e6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+
+        header { background: var(--primary); color: white; padding: 16px 20px; margin-bottom: 24px; }
+        header h1 { font-size: 20px; }
+        header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+        .step { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .step-number { display: inline-block; width: 28px; height: 28px; background: var(--primary); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 600; font-size: 14px; margin-right: 8px; }
+        .step h2 { font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; }
+        .step p { font-size: 13px; color: #495057; line-height: 1.6; margin-bottom: 10px; }
+
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #495057; }
+        input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; margin-bottom: 12px; }
+        textarea { min-height: 60px; resize: vertical; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .upload-area {
+            border: 2px dashed var(--border); border-radius: 8px; padding: 30px; text-align: center;
+            cursor: pointer; transition: border-color 0.2s; margin-bottom: 12px;
+        }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background: #e8f5e9; }
+        .upload-area input[type="file"] { display: none; }
+        .upload-icon { font-size: 36px; margin-bottom: 8px; }
+        .upload-text { font-size: 14px; color: #495057; }
+        .file-info { font-size: 12px; color: var(--primary); margin-top: 8px; }
+
+        .btn { display: inline-block; padding: 10px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #40916c; }
+        .btn-primary:disabled { background: #adb5bd; cursor: not-allowed; }
+
+        .naming-convention { background: #e8f5e9; padding: 12px; border-radius: 4px; font-size: 12px; font-family: monospace; margin-bottom: 12px; }
+        .naming-convention strong { color: var(--primary); }
+
+        .output-area { background: #f1f3f5; padding: 16px; border-radius: 8px; font-size: 13px; display: none; }
+        .output-area pre { background: white; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+        .success { color: #28a745; font-weight: 600; }
+        .instructions-list { padding-left: 20px; }
+        .instructions-list li { margin-bottom: 6px; font-size: 13px; }
+
+        .lang-note { background: #fff3cd; padding: 10px; border-radius: 4px; font-size: 12px; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Upload New Village VER Data</h1>
+        <p>For field teams and para-ecologists — upload scanned Village Ecological Register PDFs</p>
+    </header>
+
+    <div class="container">
+        <!-- Step 1: Village Metadata -->
+        <div class="step">
+            <h2><span class="step-number">1</span> Village Information</h2>
+            <p>Fill in the village details. This information helps the ETL pipeline process the PDF correctly.</p>
+
+            <div class="row">
+                <div><label>Village Name *</label><input type="text" id="village_name" required placeholder="e.g., Manjari"></div>
+                <div><label>Village Name (Local Script) *</label><input type="text" id="village_name_local" placeholder="e.g., मांजरी / માંજરી"></div>
+            </div>
+            <div class="row">
+                <div><label>Block / Taluka *</label><input type="text" id="block" placeholder="e.g., Khatav"></div>
+                <div><label>District</label><input type="text" id="district" placeholder="e.g., Satara"></div>
+            </div>
+            <div class="row">
+                <div>
+                    <label>State *</label>
+                    <select id="state">
+                        <option value="">Select State...</option>
+                        <option value="gujarat">Gujarat (Gujarati)</option>
+                        <option value="maharashtra">Maharashtra (Marathi)</option>
+                        <option value="chhattisgarh">Chhattisgarh (Hindi)</option>
+                        <option value="odisha">Odisha (Odia/Hindi)</option>
+                        <option value="rajasthan">Rajasthan (Hindi)</option>
+                        <option value="northeast">North-East (English)</option>
+                        <option value="andhra_pradesh">Andhra Pradesh (Telugu)</option>
+                        <option value="telangana">Telangana (Telugu)</option>
+                        <option value="karnataka">Karnataka (Kannada)</option>
+                    </select>
+                </div>
+                <div><label>Gram Panchayat</label><input type="text" id="gram_panchayat" placeholder="e.g., Manjari"></div>
+            </div>
+            <div class="row">
+                <div><label>VER Year *</label><input type="text" id="ver_year" placeholder="e.g., 2023-24"></div>
+                <div><label>Para-Ecologist Name</label><input type="text" id="collector_name" placeholder="Name of data collector"></div>
+            </div>
+
+            <div class="lang-note">
+                <strong>Language auto-detection:</strong> The OCR pipeline will automatically use the correct language based on the state you select.
+            </div>
+        </div>
+
+        <!-- Step 2: Upload PDF -->
+        <div class="step">
+            <h2><span class="step-number">2</span> Upload Scanned PDF</h2>
+            <p>Upload the scanned VER document. Accepted format: PDF. Maximum size: 100MB.</p>
+
+            <div class="upload-area" id="upload-area" onclick="document.getElementById('pdf-file').click()">
+                <input type="file" id="pdf-file" accept=".pdf" onchange="handleFileSelect(event)">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">Click or drag PDF file here</div>
+                <div class="file-info" id="file-info"></div>
+            </div>
+
+            <p><strong>Naming Convention:</strong></p>
+            <div class="naming-convention">
+                <strong>VER_{VillageName}_{Year}.pdf</strong><br>
+                Example: VER_Manjari_2023-24.pdf
+            </div>
+        </div>
+
+        <!-- Step 3: Coordinates -->
+        <div class="step">
+            <h2><span class="step-number">3</span> Village Coordinates</h2>
+            <p>Enter GPS coordinates of the village (required for map display). You can get these from Google Maps or the NoteCam app.</p>
+            <div class="row">
+                <div><label>Latitude *</label><input type="number" step="0.000001" id="latitude" placeholder="e.g., 20.601253"></div>
+                <div><label>Longitude *</label><input type="number" step="0.000001" id="longitude" placeholder="e.g., 74.260039"></div>
+            </div>
+        </div>
+
+        <!-- Step 4: Notes -->
+        <div class="step">
+            <h2><span class="step-number">4</span> Additional Notes</h2>
+            <textarea id="notes" placeholder="Any notes about data quality, missing sections, special conditions..."></textarea>
+        </div>
+
+        <!-- Submit -->
+        <div class="step">
+            <h2><span class="step-number">5</span> Generate Upload Package</h2>
+            <p>This will generate the folder structure and metadata file ready to be pushed to the GitHub repository.</p>
+            <button class="btn btn-primary" id="btn-generate" onclick="generatePackage()">Generate Upload Package</button>
+        </div>
+
+        <!-- Output -->
+        <div class="output-area" id="output-area">
+            <p class="success" id="output-title"></p>
+            <pre id="output-content"></pre>
+            <div id="output-instructions"></div>
+            <br>
+            <button class="btn btn-primary" onclick="downloadPackage()">Download Metadata JSON</button>
+        </div>
+    </div>
+
+    <script>
+    let selectedFile = null;
+    let packageData = null;
+
+    // Drag and drop
+    const uploadArea = document.getElementById('upload-area');
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            document.getElementById('pdf-file').files = e.dataTransfer.files;
+            handleFileSelect({ target: { files: e.dataTransfer.files } });
+        }
+    });
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        selectedFile = file;
+        const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+        document.getElementById('file-info').textContent = `Selected: ${file.name} (${sizeMB} MB)`;
+    }
+
+    function generatePackage() {
+        const villageName = document.getElementById('village_name').value.trim();
+        const state = document.getElementById('state').value;
+        const block = document.getElementById('block').value.trim();
+        const lat = document.getElementById('latitude').value;
+        const lon = document.getElementById('longitude').value;
+
+        if (!villageName || !state || !block || !lat || !lon) {
+            alert('Please fill in all required fields (Village Name, Block, State, Coordinates)');
+            return;
+        }
+        if (!selectedFile) {
+            alert('Please select a PDF file to upload');
+            return;
+        }
+
+        const villageId = `${villageName.toLowerCase().replace(/\s+/g, '_')}_${block.toLowerCase().replace(/\s+/g, '_')}_${state}`;
+        const folderName = villageName.toLowerCase().replace(/\s+/g, '_');
+
+        packageData = {
+            village_id: villageId,
+            folder_name: folderName,
+            village_name: villageName,
+            village_name_local: document.getElementById('village_name_local').value,
+            gram_panchayat: document.getElementById('gram_panchayat').value,
+            block: block,
+            district: document.getElementById('district').value,
+            state: state,
+            ver_year: document.getElementById('ver_year').value,
+            coordinates: {
+                latitude: parseFloat(lat),
+                longitude: parseFloat(lon)
+            },
+            collector_name: document.getElementById('collector_name').value,
+            pdf_filename: selectedFile.name,
+            pdf_size_mb: (selectedFile.size / 1024 / 1024).toFixed(1),
+            upload_date: new Date().toISOString().split('T')[0],
+            notes: document.getElementById('notes').value,
+            data_status: 'raw_pdf'
+        };
+
+        // Show output
+        const outputArea = document.getElementById('output-area');
+        outputArea.style.display = 'block';
+        document.getElementById('output-title').textContent = 'Upload package generated successfully!';
+        document.getElementById('output-content').textContent = JSON.stringify(packageData, null, 2);
+
+        document.getElementById('output-instructions').innerHTML = `
+            <h3 style="margin:12px 0 8px;">Upload Instructions (for GitHub):</h3>
+            <ol class="instructions-list">
+                <li>Create folder: <code>data/raw/${folderName}/</code></li>
+                <li>Place the PDF file: <code>data/raw/${folderName}/${selectedFile.name}</code></li>
+                <li>Place this metadata file: <code>data/raw/${folderName}/metadata.json</code></li>
+                <li>Add to village registry: <code>data/village_registry.json</code></li>
+                <li>Commit and push:<br>
+                    <code style="display:block;background:#e9ecef;padding:8px;margin-top:4px;border-radius:4px;">
+                    git add data/raw/${folderName}/<br>
+                    git commit -m "Add VER data for ${villageName}, ${state}"<br>
+                    git push
+                    </code>
+                </li>
+                <li>Run ETL pipeline:<br>
+                    <code style="display:block;background:#e9ecef;padding:8px;margin-top:4px;border-radius:4px;">
+                    python3 etl/run_pipeline.py ${folderName} --state ${state}
+                    </code>
+                </li>
+            </ol>
+        `;
+
+        outputArea.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function downloadPackage() {
+        if (!packageData) return;
+        const blob = new Blob([JSON.stringify(packageData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${packageData.folder_name}_metadata.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    </script>
+</body>
+</html>

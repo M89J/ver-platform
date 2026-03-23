@@ -1,0 +1,876 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ver-platform.github.io/schema/ver_schema.json",
+  "title": "Village Ecological Register (VER) Data Standard",
+  "description": "Comprehensive schema for citizen science data collected through Village Ecological Registers. Covers biodiversity, socioeconomic, historical, agro-ecological, and conservation data at village level.",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["metadata", "section_2_general_info"],
+  "properties": {
+
+    "metadata": {
+      "type": "object",
+      "description": "Document metadata and processing information",
+      "required": ["village_id", "ver_year", "language", "data_status"],
+      "properties": {
+        "village_id": { "type": "string", "description": "Unique village identifier: lowercase_village_block_state (e.g., manjari_khatav_maharashtra)" },
+        "ver_year": { "type": "string", "description": "Year of VER preparation (e.g., 2023-24)" },
+        "language": { "type": "string", "enum": ["marathi", "hindi", "english", "gujarati", "kannada", "tamil", "telugu", "bengali", "odia", "other"] },
+        "data_status": { "type": "string", "enum": ["raw_pdf", "ocr_extracted", "human_reviewed", "verified"], "description": "Current stage in ETL pipeline" },
+        "source_pdf": { "type": "string", "description": "Relative path to original scanned PDF" },
+        "total_pages": { "type": "integer" },
+        "extraction_date": { "type": "string", "format": "date" },
+        "reviewer": { "type": "string" },
+        "ocr_confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "Average OCR confidence score" },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "section_2_general_info": {
+      "type": "object",
+      "description": "Section 2: General village information including demographics, land use, and livelihoods",
+      "required": ["village_name", "state"],
+      "properties": {
+        "village_name": { "type": "string" },
+        "village_name_local": { "type": "string", "description": "Village name in local script" },
+        "gram_panchayat": { "type": "string" },
+        "block": { "type": "string" },
+        "district": { "type": "string" },
+        "state": { "type": "string" },
+        "coordinates": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+            "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+          }
+        },
+        "date_of_preparation": { "type": "string", "format": "date" },
+
+        "land_details": {
+          "type": "object",
+          "description": "Section 2.1 - All areas in hectares",
+          "properties": {
+            "total_village_area_ha": { "type": "number" },
+            "forest_land_ha": { "type": "number" },
+            "grazing_land_ha": { "type": "number" },
+            "revenue_wasteland_ha": { "type": "number" },
+            "agricultural_land_ha": { "type": "number" },
+            "other_ha": { "type": "number" }
+          }
+        },
+
+        "caste_composition": {
+          "type": "object",
+          "description": "Section 2.2 - Number of households by category",
+          "properties": {
+            "total_population": { "type": "integer" },
+            "general": { "type": "integer" },
+            "scheduled_caste": { "type": "integer" },
+            "scheduled_tribe": { "type": "integer" },
+            "other_backward_classes": { "type": "integer" }
+          }
+        },
+
+        "landholding": {
+          "type": "object",
+          "description": "Section 2.3 - Number of households by landholding category",
+          "properties": {
+            "large_above_10ha": { "type": "integer" },
+            "medium_4_to_10ha": { "type": "integer" },
+            "semi_medium_2_to_4ha": { "type": "integer" },
+            "small_1_to_2ha": { "type": "integer" },
+            "marginal_below_1ha": { "type": "integer" },
+            "landless": { "type": "integer" }
+          }
+        },
+
+        "major_livelihoods": {
+          "type": "array",
+          "description": "Section 2.4 - Major livelihood sources",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "name_local": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "section_3_village_history": {
+      "type": "object",
+      "description": "Section 3: Village history, myths, beliefs, and resource mapping",
+      "properties": {
+        "village_history": {
+          "type": "object",
+          "description": "Section 3.1 - Timeline of key events from past 50-80 years",
+          "properties": {
+            "narrative": { "type": "string", "description": "Full text narrative of village history" },
+            "narrative_local": { "type": "string", "description": "Narrative in original local language" },
+            "timeline_events": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "year": { "type": "string" },
+                  "event": { "type": "string" },
+                  "event_local": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+
+        "traditional_methods": {
+          "type": "array",
+          "description": "Section 3.2 - Traditional methods of documenting knowledge (songs, paintings, poems)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "category": { "type": "string", "enum": ["song", "painting", "poem", "proverb", "dance", "ritual", "other"] },
+              "name": { "type": "string" },
+              "name_local": { "type": "string" },
+              "significance": { "type": "string" },
+              "expert_name": { "type": "string" },
+              "contact": { "type": "string" }
+            }
+          }
+        },
+
+        "myths_and_beliefs": {
+          "type": "array",
+          "description": "Section 3.2 - Popular myths and beliefs",
+          "items": {
+            "type": "object",
+            "properties": {
+              "myth": { "type": "string" },
+              "myth_local": { "type": "string" },
+              "meaning": { "type": "string" },
+              "significance": { "type": "string" }
+            }
+          }
+        },
+
+        "resource_map": {
+          "type": "object",
+          "description": "Section 3.3 - Community-drawn village resource map",
+          "properties": {
+            "image_path": { "type": "string" },
+            "description": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "section_4_agroecological": {
+      "type": "object",
+      "description": "Section 4: Agro-ecological knowledge and practices",
+      "properties": {
+
+        "cropping_pattern": {
+          "type": "object",
+          "description": "Section 4.1 - Cropping patterns across seasons and time periods",
+          "properties": {
+            "kharif": { "$ref": "#/$defs/seasonal_cropping" },
+            "rabi": { "$ref": "#/$defs/seasonal_cropping" },
+            "zaid": { "$ref": "#/$defs/seasonal_cropping" }
+          }
+        },
+
+        "traditional_varieties": {
+          "type": "array",
+          "description": "Section 4.2 - Traditional crop varieties and their significance",
+          "items": {
+            "type": "object",
+            "properties": {
+              "variety_name": { "type": "string" },
+              "variety_name_local": { "type": "string" },
+              "crop_type": { "type": "string" },
+              "availability": { "type": "string", "enum": ["abundant", "scarce", "rare", "extinct"] },
+              "significance": { "type": "string" },
+              "reason_not_prevalent": { "type": "string" }
+            }
+          }
+        },
+
+        "farming_practices": {
+          "type": "array",
+          "description": "Section 4.3 - Traditional and current farming practices",
+          "items": {
+            "type": "object",
+            "properties": {
+              "practice_name": { "type": "string" },
+              "practice_name_local": { "type": "string" },
+              "importance": { "type": "string" },
+              "reason_diminished": { "type": "string" }
+            }
+          }
+        },
+
+        "hedge_biodiversity": {
+          "type": "array",
+          "description": "Section 4.4 - Hedge flora and fauna with temporal changes",
+          "items": {
+            "type": "object",
+            "properties": {
+              "group": { "type": "string", "enum": ["insect", "bird", "reptile", "mammal", "amphibian", "other"] },
+              "local_name": { "type": "string" },
+              "local_name_script": { "type": "string" },
+              "change_25yr": { "$ref": "#/$defs/trend" },
+              "reason_for_change": { "type": "string" },
+              "important_for_farming": { "type": "string", "enum": ["yes", "no", "dont_know"] },
+              "why_important": { "type": "string" }
+            }
+          }
+        },
+
+        "soil_health": {
+          "type": "object",
+          "description": "Section 4.5 - Soil health status",
+          "properties": {
+            "soil_types": { "type": "array", "items": { "type": "string" } },
+            "fertility_change_20yr": { "$ref": "#/$defs/trend" },
+            "reasons_for_change": { "type": "string" }
+          }
+        },
+
+        "soil_health_indicators": {
+          "type": "array",
+          "description": "Section 4.6 - Community-observed soil health indicators",
+          "items": {
+            "type": "object",
+            "properties": {
+              "indicator": { "type": "string" },
+              "indicator_local": { "type": "string" },
+              "significance": { "type": "string" },
+              "change_25yr": { "$ref": "#/$defs/trend" },
+              "reason_for_change": { "type": "string" }
+            }
+          }
+        },
+
+        "traditional_climate_practices": {
+          "type": "array",
+          "description": "Section 4.7 - Traditional practices related to soil, climate, and crop decisions",
+          "items": {
+            "type": "object",
+            "properties": {
+              "practice_name": { "type": "string" },
+              "practice_name_local": { "type": "string" },
+              "significance": { "type": "string" }
+            }
+          }
+        },
+
+        "pest_incidences": {
+          "type": "array",
+          "description": "Section 4.8 - Agriculture pest incidences",
+          "items": {
+            "type": "object",
+            "properties": {
+              "crop": { "type": "string" },
+              "disease_name": { "type": "string" },
+              "disease_name_local": { "type": "string" },
+              "major_pest": { "type": "string" },
+              "season": { "type": "string" },
+              "frequency": { "type": "string", "enum": ["seasonal", "once_5yr", "once_10yr", "rare"] },
+              "farmer_action": { "type": "string" },
+              "natural_pest_controller": { "type": "string" }
+            }
+          }
+        },
+
+        "major_weeds": {
+          "type": "array",
+          "description": "Section 4.9 - Major weeds and control methods",
+          "items": {
+            "type": "object",
+            "properties": {
+              "weed_name": { "type": "string" },
+              "weed_name_local": { "type": "string" },
+              "affected_crop": { "type": "string" },
+              "control_methods": { "type": "string" },
+              "traditional_methods": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "section_5_livestock": {
+      "type": "object",
+      "description": "Section 5: Livestock data including numbers, breeds, diseases, and traditional practices",
+      "properties": {
+
+        "livestock_numbers": {
+          "type": "array",
+          "description": "Section 5.1 - Livestock population with temporal trends",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "type_local": { "type": "string" },
+              "current_count": { "type": "integer" },
+              "trend_10yr": { "$ref": "#/$defs/trend_or_count" },
+              "trend_25yr": { "$ref": "#/$defs/trend_or_count" },
+              "trend_50yr": { "$ref": "#/$defs/trend_or_count" },
+              "reason_for_change": { "type": "string" }
+            }
+          }
+        },
+
+        "indigenous_breeds": {
+          "type": "array",
+          "description": "Section 5.2 - Indigenous breeds and population changes",
+          "items": {
+            "type": "object",
+            "properties": {
+              "breed_name": { "type": "string" },
+              "breed_name_local": { "type": "string" },
+              "animal_type": { "type": "string" },
+              "current_count": { "type": "integer" },
+              "trend_10yr": { "$ref": "#/$defs/trend_or_count" },
+              "trend_25yr": { "$ref": "#/$defs/trend_or_count" },
+              "trend_50yr": { "$ref": "#/$defs/trend_or_count" },
+              "reason_for_change": { "type": "string" }
+            }
+          }
+        },
+
+        "common_diseases": {
+          "type": "array",
+          "description": "Section 5.3 - Common livestock diseases",
+          "items": {
+            "type": "object",
+            "properties": {
+              "disease_name": { "type": "string" },
+              "disease_name_local": { "type": "string" },
+              "livestock_category": { "type": "string" },
+              "season_of_outbreak": { "type": "string" },
+              "current_status": { "type": "string", "enum": ["rare", "uncommon", "common"] },
+              "trend_10yr": { "$ref": "#/$defs/trend" },
+              "trend_25yr": { "$ref": "#/$defs/trend" },
+              "trend_50yr": { "$ref": "#/$defs/trend" },
+              "reason_for_change": { "type": "string" }
+            }
+          }
+        },
+
+        "ethno_veterinary_practices": {
+          "type": "array",
+          "description": "Section 5.4 - Traditional ethno-veterinary practices",
+          "items": {
+            "type": "object",
+            "properties": {
+              "disease_name": { "type": "string" },
+              "medicinal_plant_or_remedy": { "type": "string" },
+              "plant_name_local": { "type": "string" },
+              "part_used": { "type": "string" }
+            }
+          }
+        },
+
+        "traditional_livestock_practices": {
+          "type": "array",
+          "description": "Section 5.5 - Traditional knowledge and customary practices",
+          "items": {
+            "type": "object",
+            "properties": {
+              "practice_name": { "type": "string" },
+              "practice_name_local": { "type": "string" },
+              "relevance": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "section_6_waterscape": {
+      "type": "object",
+      "description": "Section 6: Water resources, availability, quality, and conservation",
+      "properties": {
+
+        "drinking_water": {
+          "type": "array",
+          "description": "Section 6.1 - Drinking and domestic water availability",
+          "items": { "$ref": "#/$defs/water_source" }
+        },
+
+        "livestock_water": {
+          "type": "array",
+          "description": "Section 6.2 - Water for livestock purposes",
+          "items": { "$ref": "#/$defs/water_source" }
+        },
+
+        "irrigation_sources": {
+          "type": "string",
+          "description": "Section 6.3 - Major water sources for irrigation"
+        },
+
+        "water_quality_changes": {
+          "type": "array",
+          "description": "Section 6.4 - Changes in water quality over time",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source_type": { "type": "string" },
+              "current_change": { "$ref": "#/$defs/trend" },
+              "trend_10yr": { "$ref": "#/$defs/trend" },
+              "trend_25yr": { "$ref": "#/$defs/trend" },
+              "trend_50yr": { "$ref": "#/$defs/trend" },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+
+        "traditional_water_conservation": {
+          "type": "array",
+          "description": "Section 6.5 - Traditional water conservation methods",
+          "items": {
+            "type": "object",
+            "properties": {
+              "method_name": { "type": "string" },
+              "method_name_local": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+
+        "important_water_bodies": {
+          "type": "array",
+          "description": "Section 6.6 - Ecologically important water bodies/wetlands",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "name_local": { "type": "string" },
+              "location": { "type": "string" },
+              "geocode": { "$ref": "#/$defs/geocode" },
+              "significance": { "type": "string" },
+              "image_path": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "section_7_forest_lands": {
+      "type": "array",
+      "description": "Section 7: Forest lands - one entry per forest patch",
+      "items": { "$ref": "#/$defs/land_patch_with_ntfp" }
+    },
+
+    "section_8_grassland": {
+      "type": "array",
+      "description": "Section 8: Grassland/Grazing land - one entry per patch",
+      "items": { "$ref": "#/$defs/land_patch_with_ntfp" }
+    },
+
+    "section_9_revenue_wasteland": {
+      "type": "array",
+      "description": "Section 9: Revenue Waste Land - one entry per patch",
+      "items": {
+        "type": "object",
+        "properties": {
+          "general_info": { "$ref": "#/$defs/land_general_info" },
+          "species_composition": { "$ref": "#/$defs/species_composition" }
+        }
+      }
+    },
+
+    "section_10_sacred_groves": {
+      "type": "array",
+      "description": "Section 10: Sacred groves / Banni / Grooves",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "name_local": { "type": "string" },
+          "location": { "type": "string" },
+          "geocode": { "$ref": "#/$defs/geocode" },
+          "cultural_significance": { "type": "string" },
+          "image_path": { "type": "string" }
+        }
+      }
+    },
+
+    "section_11_ecologically_important_sites": {
+      "type": "array",
+      "description": "Section 11: Ecologically important sites (wetlands with high diversity, roosting trees, etc.)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "name_local": { "type": "string" },
+          "type": { "type": "string" },
+          "location": { "type": "string" },
+          "geocode": { "$ref": "#/$defs/geocode" },
+          "description": { "type": "string" },
+          "image_path": { "type": "string" }
+        }
+      }
+    },
+
+    "section_12_old_giant_trees": {
+      "type": "array",
+      "description": "Section 12: Old and giant trees in the village",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tree_name": { "type": "string" },
+          "tree_name_local": { "type": "string" },
+          "geocode": { "$ref": "#/$defs/geocode" },
+          "landmark": { "type": "string" },
+          "image_path": { "type": "string" }
+        }
+      }
+    },
+
+    "section_13_bee_hives": {
+      "type": "array",
+      "description": "Section 13: Locations of big bee hives",
+      "items": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string" },
+          "geocode": { "$ref": "#/$defs/geocode" },
+          "landmark": { "type": "string" },
+          "image_path": { "type": "string" }
+        }
+      }
+    },
+
+    "section_14_fire_incidence": {
+      "type": "array",
+      "description": "Section 14: Fire incidence records",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date_or_period": { "type": "string" },
+          "location": { "type": "string" },
+          "frequency": { "type": "string" },
+          "damage_or_loss": { "type": "string" },
+          "community_role": { "type": "string" },
+          "forest_dept_role": { "type": "string" }
+        }
+      }
+    },
+
+    "section_15_conservation_ethos": {
+      "type": "object",
+      "description": "Section 15: Local conservation ethos - values, beliefs, practices for conservation",
+      "properties": {
+        "narrative": { "type": "string" },
+        "narrative_local": { "type": "string" },
+        "practices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "practice": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "section_16_medicinal_plants": {
+      "type": "array",
+      "description": "Section 16: Medicinal plants, uses, and availability",
+      "items": {
+        "type": "object",
+        "properties": {
+          "plant_name": { "type": "string" },
+          "plant_name_local": { "type": "string" },
+          "uses": { "type": "string" },
+          "availability_change_25yr": { "$ref": "#/$defs/trend" }
+        }
+      }
+    },
+
+    "section_17_invasive_plants": {
+      "type": "array",
+      "description": "Section 17: Invasive plant species",
+      "items": {
+        "type": "object",
+        "properties": {
+          "plant_name": { "type": "string" },
+          "plant_name_local": { "type": "string" },
+          "when_appeared": { "type": "string" },
+          "harmful_impact": { "type": "string" },
+          "availability_change_25yr": { "$ref": "#/$defs/trend" }
+        }
+      }
+    },
+
+    "section_18_feral_animals": {
+      "type": "array",
+      "description": "Section 18: Feral animals in the village",
+      "items": {
+        "type": "object",
+        "properties": {
+          "animal_name": { "type": "string" },
+          "animal_name_local": { "type": "string" },
+          "harmful_impact": { "type": "string" },
+          "availability_change_25yr": { "$ref": "#/$defs/trend" }
+        }
+      }
+    },
+
+    "section_19_culturally_protected_species": {
+      "type": "array",
+      "description": "Section 19: Socially/culturally protected plants and animals",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "name_local": { "type": "string" },
+          "category": { "type": "string", "enum": ["tree", "shrub", "herb", "mammal", "bird", "reptile", "fish", "insect", "other"] },
+          "cultural_significance": { "type": "string" }
+        }
+      }
+    },
+
+    "section_20_flora_fauna": {
+      "type": "object",
+      "description": "Section 20: Comprehensive flora and fauna inventories",
+      "properties": {
+
+        "trees": {
+          "type": "array",
+          "description": "Section 20.1 - Tree diversity",
+          "items": { "$ref": "#/$defs/plant_species" }
+        },
+
+        "shrubs": {
+          "type": "array",
+          "description": "Section 20.2 - Shrub diversity",
+          "items": { "$ref": "#/$defs/plant_species" }
+        },
+
+        "herbs_and_grasses": {
+          "type": "array",
+          "description": "Section 20.3 - Herbs and grass diversity",
+          "items": { "$ref": "#/$defs/plant_species" }
+        },
+
+        "lower_plants": {
+          "type": "array",
+          "description": "Section 20.4 - Bryophytes, lichens, fungi, algae",
+          "items": { "$ref": "#/$defs/plant_species" }
+        },
+
+        "mammals": {
+          "type": "array",
+          "description": "Section 20.5 - Mammal diversity",
+          "items": { "$ref": "#/$defs/fauna_species" }
+        },
+
+        "birds": {
+          "type": "array",
+          "description": "Section 20.6 - Bird diversity",
+          "items": { "$ref": "#/$defs/fauna_species" }
+        },
+
+        "reptiles_amphibians": {
+          "type": "array",
+          "description": "Section 20.7 - Reptiles and amphibians",
+          "items": { "$ref": "#/$defs/fauna_species" }
+        },
+
+        "butterflies": {
+          "type": "array",
+          "description": "Section 20.8 - Butterfly diversity",
+          "items": { "$ref": "#/$defs/fauna_species" }
+        },
+
+        "dragonflies": {
+          "type": "array",
+          "description": "Section 20.9 - Dragonfly diversity",
+          "items": { "$ref": "#/$defs/fauna_species" }
+        },
+
+        "fish_insects_others": {
+          "type": "array",
+          "description": "Section 20.10 - Fishes, insects, spiders, other groups",
+          "items": { "$ref": "#/$defs/fauna_species" }
+        },
+
+        "soil_macrofauna": {
+          "type": "array",
+          "description": "Section 20.11 - Soil macrofauna",
+          "items": { "$ref": "#/$defs/fauna_species" }
+        }
+      }
+    },
+
+    "photos": {
+      "type": "array",
+      "description": "VER field photographs with geocodes",
+      "items": {
+        "type": "object",
+        "properties": {
+          "image_path": { "type": "string" },
+          "caption": { "type": "string" },
+          "caption_local": { "type": "string" },
+          "section_ref": { "type": "string", "description": "Which VER section this photo belongs to" },
+          "geocode": { "$ref": "#/$defs/geocode" },
+          "date_taken": { "type": "string", "format": "date" }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+
+    "trend": {
+      "type": "string",
+      "enum": ["increase", "decrease", "stable", "unknown"],
+      "description": "Temporal trend indicator: increase(↑), decrease(↓), stable(↔)"
+    },
+
+    "trend_or_count": {
+      "oneOf": [
+        { "type": "integer", "description": "Actual count if available" },
+        { "type": "string", "enum": ["increase", "decrease", "stable", "unknown"] }
+      ],
+      "description": "Either an actual count or a trend direction"
+    },
+
+    "geocode": {
+      "type": "object",
+      "properties": {
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
+      }
+    },
+
+    "seasonal_cropping": {
+      "type": "object",
+      "description": "Cropping data for a single season across time periods",
+      "properties": {
+        "current": { "type": "array", "items": { "type": "string" }, "description": "Crops ranked by cultivation area (high to low)" },
+        "ago_10yr": { "type": "array", "items": { "type": "string" } },
+        "ago_25yr": { "type": "array", "items": { "type": "string" } },
+        "ago_50yr": { "type": "array", "items": { "type": "string" } },
+        "reason_for_change": { "type": "string" }
+      }
+    },
+
+    "water_source": {
+      "type": "object",
+      "properties": {
+        "source_type": { "type": "string", "enum": ["tap", "tubewell", "open_well", "spring", "river", "other"] },
+        "total_count": { "type": "integer" },
+        "availability_months": { "type": "string", "enum": ["12_months", "8_to_11_months", "4_to_7_months", "below_4_months"] }
+      }
+    },
+
+    "land_general_info": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "name_local": { "type": "string" },
+        "type": { "type": "string", "description": "RF/PF/Revenue/Others (for forest)" },
+        "location": { "type": "string" },
+        "geocode": { "$ref": "#/$defs/geocode" },
+        "size_ha": { "type": "number" },
+        "map_image_path": { "type": "string" }
+      }
+    },
+
+    "species_composition": {
+      "type": "object",
+      "description": "Major plant species composition across time periods",
+      "properties": {
+        "trees": { "$ref": "#/$defs/temporal_species_list" },
+        "shrubs": { "$ref": "#/$defs/temporal_species_list" },
+        "herbs": { "$ref": "#/$defs/temporal_species_list" },
+        "grasses": { "$ref": "#/$defs/temporal_species_list" },
+        "climbers": { "$ref": "#/$defs/temporal_species_list" }
+      }
+    },
+
+    "temporal_species_list": {
+      "type": "object",
+      "description": "Top species with temporal changes",
+      "properties": {
+        "current": { "type": "array", "items": { "type": "string" } },
+        "trend_10yr": { "$ref": "#/$defs/trend" },
+        "trend_25yr": { "$ref": "#/$defs/trend" },
+        "trend_50yr": { "$ref": "#/$defs/trend" },
+        "reason_for_change": { "type": "string" }
+      }
+    },
+
+    "ntfp_item": {
+      "type": "object",
+      "description": "Non-Timber Forest Product availability",
+      "properties": {
+        "item_name": { "type": "string" },
+        "item_name_local": { "type": "string" },
+        "category": { "type": "string", "enum": ["fuelwood", "fodder", "wild_edible", "medicinal", "other"] },
+        "current_availability": { "type": "string", "enum": ["very_good", "medium", "very_less"] },
+        "trend_10yr": { "$ref": "#/$defs/trend" },
+        "trend_25yr": { "$ref": "#/$defs/trend" },
+        "trend_50yr": { "$ref": "#/$defs/trend" },
+        "reason_for_change": { "type": "string" }
+      }
+    },
+
+    "land_patch_with_ntfp": {
+      "type": "object",
+      "properties": {
+        "general_info": { "$ref": "#/$defs/land_general_info" },
+        "species_composition": { "$ref": "#/$defs/species_composition" },
+        "ntfp": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ntfp_item" }
+        }
+      }
+    },
+
+    "plant_species": {
+      "type": "object",
+      "description": "Plant species entry for Section 20 biodiversity lists",
+      "properties": {
+        "local_name": { "type": "string" },
+        "local_name_script": { "type": "string", "description": "Name in original Devanagari/local script" },
+        "scientific_name": { "type": "string" },
+        "flower_color": { "type": "string" },
+        "traditional_use": { "type": "string" },
+        "habitat": {
+          "type": "object",
+          "description": "Presence in different land use types",
+          "properties": {
+            "forest": { "type": "boolean" },
+            "grazing_land": { "type": "boolean" },
+            "revenue_wasteland": { "type": "boolean" },
+            "near_water_bodies": { "type": "boolean" },
+            "agriculture": { "type": "boolean" }
+          }
+        },
+        "availability_change_25yr": { "$ref": "#/$defs/trend" }
+      }
+    },
+
+    "fauna_species": {
+      "type": "object",
+      "description": "Animal species entry for Section 20 biodiversity lists",
+      "properties": {
+        "local_name": { "type": "string" },
+        "local_name_script": { "type": "string" },
+        "guide_name": { "type": "string", "description": "Name as per pocket/photo guide" },
+        "scientific_name": { "type": "string" },
+        "group": { "type": "string", "description": "Sub-group (e.g., snake, lizard, frog for reptiles_amphibians)" },
+        "habitat": { "type": "string" },
+        "location_in_village": { "type": "string" },
+        "availability_change_25yr": { "$ref": "#/$defs/trend" },
+        "reason_for_change": { "type": "string" },
+        "tek_remarks": { "type": "string", "description": "Associated Traditional Ecological Knowledge" }
+      }
+    }
+  }
+}

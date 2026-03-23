@@ -1,0 +1,253 @@
+/* === VER Platform Styles === */
+:root {
+    --primary: #2d6a4f;
+    --primary-light: #40916c;
+    --primary-dark: #1b4332;
+    --accent: #d4a373;
+    --bg: #f8f9fa;
+    --sidebar-width: 420px;
+    --navbar-height: 52px;
+    --text: #212529;
+    --text-light: #6c757d;
+    --border: #dee2e6;
+    --card-bg: #ffffff;
+    --stat-bg: #e8f5e9;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text); background: var(--bg); }
+
+/* --- Navbar --- */
+#navbar {
+    height: var(--navbar-height);
+    background: var(--primary-dark);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 1000;
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
+#app-title { font-size: 18px; font-weight: 600; }
+.subtitle { font-size: 12px; opacity: 0.8; margin-left: 8px; }
+.nav-links { margin-left: 16px; }
+.nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 12px; margin-left: 12px; }
+.nav-links a:hover { color: white; }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+#search-input {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    width: 180px;
+}
+#state-filter {
+    padding: 6px 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    background: white;
+}
+.lang-toggle { display: flex; gap: 2px; }
+.lang-btn {
+    padding: 4px 8px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: white;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.lang-btn.active { background: var(--primary-light); border-color: var(--primary-light); }
+
+/* --- Main Layout --- */
+#main-container {
+    display: flex;
+    margin-top: var(--navbar-height);
+    height: calc(100vh - var(--navbar-height));
+}
+#map-container {
+    flex: 1;
+    position: relative;
+}
+#map { width: 100%; height: 100%; }
+#map-stats {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.9);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 500;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* --- Sidebar --- */
+#sidebar {
+    width: var(--sidebar-width);
+    background: var(--card-bg);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    position: relative;
+}
+#sidebar.hidden { display: none; }
+#sidebar-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-light);
+    z-index: 10;
+}
+
+/* Village Header */
+#village-header {
+    background: var(--primary);
+    color: white;
+    padding: 20px 16px 14px;
+}
+#village-name { font-size: 20px; font-weight: 600; }
+#village-location { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    margin-top: 6px;
+    background: rgba(255,255,255,0.2);
+}
+
+/* Tab Navigation */
+#tab-nav {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    background: var(--bg);
+    overflow-x: auto;
+}
+.tab-btn {
+    padding: 10px 14px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-light);
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* Tab Content */
+.tab-content { display: none; padding: 16px; }
+.tab-content.active { display: block; }
+
+/* Stat Grid */
+.stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.stat-card {
+    background: var(--stat-bg);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+}
+.stat-value { font-size: 22px; font-weight: 700; color: var(--primary-dark); }
+.stat-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+/* Charts */
+.chart-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+.chart-container h3 { font-size: 14px; margin-bottom: 10px; color: var(--primary-dark); }
+.chart-container canvas { max-height: 220px; }
+
+/* Info Sections */
+.info-section { margin-bottom: 16px; }
+.info-section h3 { font-size: 14px; color: var(--primary-dark); margin-bottom: 8px; }
+.info-section p { font-size: 13px; line-height: 1.6; color: var(--text); }
+.info-section ul { list-style: none; padding: 0; }
+.info-section li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+.info-section li:last-child { border-bottom: none; }
+
+/* Species Lists */
+.species-group { margin-bottom: 12px; }
+.species-group h4 { font-size: 13px; color: var(--primary); margin-bottom: 4px; }
+.species-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    background: var(--stat-bg);
+    border-radius: 12px;
+    font-size: 11px;
+    margin: 2px;
+}
+
+/* Livestock Table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th {
+    background: var(--primary);
+    color: white;
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 500;
+}
+.data-table td { padding: 6px; border-bottom: 1px solid var(--border); }
+.data-table tr:hover { background: var(--stat-bg); }
+.trend-up { color: #2d6a4f; }
+.trend-down { color: #c1121f; }
+.trend-stable { color: #6c757d; }
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+.btn:hover { background: var(--primary-light); }
+
+/* Photo Gallery */
+#photo-gallery { display: flex; flex-wrap: wrap; gap: 8px; }
+#photo-gallery img {
+    width: calc(50% - 4px);
+    border-radius: 6px;
+    object-fit: cover;
+    height: 120px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #main-container { flex-direction: column; }
+    #sidebar { width: 100%; height: 50vh; border-left: none; border-top: 1px solid var(--border); }
+    #map-container { height: 50vh; }
+    .nav-right { gap: 4px; }
+    #search-input { width: 100px; }
+    .subtitle { display: none; }
+}
