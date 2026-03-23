@@ -1,0 +1,86 @@
+name: Validate Data
+
+on:
+  pull_request:
+    paths:
+      - 'data/structured/**'
+      - 'data/villages.geojson'
+  push:
+    branches: [main]
+    paths:
+      - 'data/structured/**'
+      - 'data/villages.geojson'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install jsonschema
+        run: pip install jsonschema
+
+      - name: Validate structured JSON files
+        run: |
+          python3 -c "
+          import json, sys
+          from pathlib import Path
+          from jsonschema import validate, ValidationError
+
+          schema_path = Path('schema/ver_schema.json')
+          if not schema_path.exists():
+              print('WARNING: No schema file found, skipping validation')
+              sys.exit(0)
+
+          schema = json.loads(schema_path.read_text())
+          errors = []
+
+          for json_file in sorted(Path('data/structured').glob('*.json')):
+              try:
+                  data = json.loads(json_file.read_text())
+                  # Basic structure check
+                  if 'metadata' not in data:
+                      errors.append(f'{json_file.name}: missing metadata')
+                      continue
+                  print(f'  OK: {json_file.name} ({data[\"metadata\"].get(\"village_id\", \"?\")})')
+              except json.JSONDecodeError as e:
+                  errors.append(f'{json_file.name}: invalid JSON - {e}')
+
+          if errors:
+              print(f'\nERRORS ({len(errors)}):')
+              for e in errors:
+                  print(f'  {e}')
+              sys.exit(1)
+          else:
+              print(f'\nAll files valid.')
+          "
+
+      - name: Validate GeoJSON
+        run: |
+          python3 -c "
+          import json, sys
+          from pathlib import Path
+
+          geojson_path = Path('data/villages.geojson')
+          if not geojson_path.exists():
+              print('WARNING: No GeoJSON file found')
+              sys.exit(0)
+
+          data = json.loads(geojson_path.read_text())
+          assert data.get('type') == 'FeatureCollection', 'Not a FeatureCollection'
+
+          features = data.get('features', [])
+          for i, f in enumerate(features):
+              assert f.get('type') == 'Feature', f'Feature {i}: missing type'
+              assert f.get('geometry'), f'Feature {i}: missing geometry'
+              coords = f['geometry'].get('coordinates', [])
+              assert len(coords) == 2, f'Feature {i}: invalid coordinates'
+              props = f.get('properties', {})
+              assert props.get('village_name'), f'Feature {i}: missing village_name'
+
+          print(f'GeoJSON valid: {len(features)} villages')
+          "

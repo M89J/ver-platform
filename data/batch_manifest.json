@@ -1,0 +1,13 @@
+{
+  "_description": "Batch manifest for VER ETL pipeline. Add villages with their PDF URLs to 'pending', then run the batch workflow.",
+  "pending": [],
+  "completed": [
+    {
+      "village_name": "manjari",
+      "state": "maharashtra",
+      "district": "Satara",
+      "block": "Khatav",
+      "processed_date": "2026-03-23"
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+name: Process Village PDF
+
+on:
+  workflow_dispatch:
+    inputs:
+      village_name:
+        description: 'Village name (lowercase, underscores, e.g. manjari)'
+        required: true
+        type: string
+      state:
+        description: 'State for language detection'
+        required: true
+        type: choice
+        options:
+          - maharashtra
+          - gujarat
+          - chhattisgarh
+          - odisha
+          - rajasthan
+          - northeast
+          - andhra_pradesh
+          - telangana
+          - karnataka
+      pdf_url:
+        description: 'Public download URL for the village PDF (Google Drive, Dropbox, or direct link)'
+        required: true
+        type: string
+      district:
+        description: 'District name (optional)'
+        required: false
+        type: string
+        default: ''
+      block:
+        description: 'Block/Taluka name (optional)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Tesseract OCR + language packs
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tesseract-ocr \
+            tesseract-ocr-eng tesseract-ocr-guj tesseract-ocr-hin \
+            tesseract-ocr-kan tesseract-ocr-mar tesseract-ocr-ori tesseract-ocr-tel
+          tesseract --version
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: etl/requirements.txt
+
+      - name: Install Python dependencies
+        run: pip install -r etl/requirements.txt
+
+      - name: Download PDF
+        run: |
+          python etl/download_pdf.py \
+            --url "${{ inputs.pdf_url }}" \
+            --output "data/raw/${{ inputs.village_name }}/VER_${{ inputs.village_name }}.pdf"
+
+      - name: Update village registry
+        run: |
+          python3 -c "
+          import json
+          from pathlib import Path
+          reg_path = Path('data/village_registry.json')
+          registry = json.loads(reg_path.read_text()) if reg_path.exists() else {}
+          village = '${{ inputs.village_name }}'
+          if village not in registry:
+              registry[village] = {
+                  'state': '${{ inputs.state }}',
+                  'district': '${{ inputs.district }}',
+                  'block': '${{ inputs.block }}'
+              }
+              reg_path.write_text(json.dumps(registry, indent=2, ensure_ascii=False))
+              print(f'Added {village} to registry')
+          else:
+              print(f'{village} already in registry')
+          "
+
+      - name: Run ETL Pipeline (Steps 1-4)
+        run: |
+          cd etl
+          python run_pipeline.py "${{ inputs.village_name }}" \
+            --state "${{ inputs.state }}" \
+            --to-step 4
+
+      - name: Select photos for web
+        run: |
+          python etl/select_photos.py "${{ inputs.village_name }}" \
+            --max-width 1200 --min-size 50000 --max-photos 15
+
+      - name: Rebuild GeoJSON (Step 5)
+        run: |
+          cd etl
+          python step5_build_geojson.py
+
+      - name: Generate processing summary
+        id: summary
+        run: |
+          python3 -c "
+          import json
+          from pathlib import Path
+          village = '${{ inputs.village_name }}'
+          state = '${{ inputs.state }}'
+
+          # Read structured JSON for summary
+          json_path = Path(f'data/structured/{village}.json')
+          if json_path.exists():
+              data = json.loads(json_path.read_text())
+              meta = data.get('metadata', {})
+              confidence = meta.get('ocr_confidence', 0)
+              pages = meta.get('total_pages', 0)
+
+              # Count non-empty sections
+              sections_with_data = 0
+              for key in data:
+                  if key.startswith('section_'):
+                      val = data[key]
+                      if isinstance(val, dict):
+                          non_empty = any(v for k, v in val.items() if k != '_raw_ocr' and v)
+                          if non_empty: sections_with_data += 1
+                      elif isinstance(val, list) and len(val) > 0:
+                          sections_with_data += 1
+
+              # Count photos
+              photos_dir = Path(f'data/photos/{village}')
+              photo_count = len(list(photos_dir.glob('*'))) if photos_dir.exists() else 0
+
+              summary = f'''## ETL Processing Summary: {village} ({state})
+          - **Pages processed**: {pages}
+          - **OCR confidence**: {confidence:.1%}
+          - **Sections with data**: {sections_with_data}/20
+          - **Photos selected**: {photo_count}
+          - **Status**: {meta.get('data_status', 'unknown')}
+
+          > OCR confidence below 60% — human review recommended for data accuracy.
+          '''
+              print(summary)
+
+              # Write to file for PR body
+              Path('/tmp/pr_summary.md').write_text(summary)
+          else:
+              Path('/tmp/pr_summary.md').write_text(f'Processing completed for {village} but no JSON generated.')
+          "
+
+      - name: Create branch and commit
+        run: |
+          git config user.name "VER ETL Bot"
+          git config user.email "ver-etl-bot@users.noreply.github.com"
+
+          BRANCH="etl/${{ inputs.village_name }}"
+          git checkout -b "$BRANCH"
+
+          git add data/structured/${{ inputs.village_name }}.json
+          git add data/villages.geojson
+          git add data/village_registry.json
+          git add data/photos/${{ inputs.village_name }}/ || true
+
+          git commit -m "Add ETL data: ${{ inputs.village_name }} (${{ inputs.state }})"
+          git push origin "$BRANCH"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(cat /tmp/pr_summary.md)
+          gh pr create \
+            --title "Add village data: ${{ inputs.village_name }} (${{ inputs.state }})" \
+            --body "$BODY" \
+            --base main \
+            --head "etl/${{ inputs.village_name }}"
+
+      - name: Cleanup intermediate files
+        if: always()
+        run: |
+          rm -rf data/raw/${{ inputs.village_name }}
+          rm -rf data/extracted/${{ inputs.village_name }}
